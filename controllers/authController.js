@@ -11,8 +11,7 @@ exports.register = asyncErrorHandler(async (req, res, next) => {
     if (userExists) {
         return next(new sendError('User already exists'));
     }
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const user = await User.create({ email, name, avatar, password: hashedPassword })
+    await User.create({ email, name, avatar, password})
     return res.sendResponse();
 })
 
@@ -31,7 +30,6 @@ exports.login = asyncErrorHandler(async (req, res, next) => {
     const token = await jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET, { expiresIn: '24h' });
     res.cookie('token', token,)
     return res.sendResponse()
-    //24 hours to milliseconds: 24 * 60 * 60 * 1000
 
 
 })
@@ -41,3 +39,10 @@ exports.user = asyncErrorHandler(async (req, res) => {
     return res.sendResponse({ user });
 
 })
+
+
+exports.logout = asyncErrorHandler((req, res) => {
+    res.clearCookie('token');
+    return res.sendResponse();
+
+});
