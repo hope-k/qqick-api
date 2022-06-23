@@ -1,8 +1,8 @@
 const sendError = require('../utils/sendError');
 
 module.exports = (err, req, res, next) => {
+    let error;
     err.statusCode = err.statusCode || 500;
-    let error = { ...err }
     if (err.name === 'CastError') {
         error = new sendError(`Resource not found, invalid ${err.path}`, 404);
     }
@@ -13,9 +13,8 @@ module.exports = (err, req, res, next) => {
 
     return res.status(err.statusCode).json({
         success: false,
-        error,
-        message: error.message,
-        stack: error.stack
+        error: err.message,
+        stack: err.stack
 
     });
 
