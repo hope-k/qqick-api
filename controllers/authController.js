@@ -2,16 +2,28 @@ const asyncErrorHandler = require('../utils/asyncErrorHandler');
 const sendError = require('../utils/sendError');
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-
+const cloudinary = require('cloudinary').v2
 
 exports.register = asyncErrorHandler(async (req, res, next) => {
-    const { email, password, name, avatar } = req.body;
+    const { email, password, name, avatar, confirmPassword} = req.body;
+    console.log(email + name + password)
+    if(password !== confirmPassword) {
+        return next(new sendError('Passwords do not match'));
+    }
+    let avatarUrl;
     const userExists = await User.findOne({ email });
     if (userExists) {
         return next(new sendError('User already exists'));
     }
-    await User.create({ email, name, avatar, password})
+    if(avatar){
+        const result = cloudinary.uploader.upload(avatar,{
+            folder: 'qqick/profile',
+            crop: 'scale'
+            
+        })
+        avaterUrl = result.url;
+    }
+    await User.create({ email, name, avatar: avatarUrl, password})
     return res.sendResponse();
 })
 

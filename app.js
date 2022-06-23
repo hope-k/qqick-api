@@ -10,7 +10,14 @@ const chatsRoute = require('./routes/chatsRoute');
 const authRoute = require('./routes/authRoute');
 const sendResponse = require('./middlewares/sendResponse');
 const cookieParser = require('cookie-parser');
+const cloudinary = require('cloudinary').v2;
 
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+    
+})
 
 dbConnect()
 
