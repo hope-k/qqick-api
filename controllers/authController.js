@@ -3,6 +3,8 @@ const sendError = require('../utils/sendError');
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const cloudinary = require('cloudinary').v2
+const bcrypt = require('bcryptjs');
+
 
 exports.register = asyncErrorHandler(async (req, res, next) => {
     const { email, password, name, avatar, confirmPassword } = req.body;
