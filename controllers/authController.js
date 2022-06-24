@@ -5,9 +5,8 @@ const jwt = require('jsonwebtoken');
 const cloudinary = require('cloudinary').v2
 
 exports.register = asyncErrorHandler(async (req, res, next) => {
-    const { email, password, name, avatar, confirmPassword} = req.body;
-    console.log(email + name + password)
-    if(password !== confirmPassword) {
+    const { email, password, name, avatar, confirmPassword } = req.body;
+    if (password !== confirmPassword) {
         return next(new sendError('Passwords do not match'));
     }
     let avatarUrl;
@@ -15,15 +14,19 @@ exports.register = asyncErrorHandler(async (req, res, next) => {
     if (userExists) {
         return next(new sendError('User already exists'));
     }
-    if(avatar){
-        const result = cloudinary.uploader.upload(avatar,{
-            folder: 'qqick/profile',
-            crop: 'scale'
-            
+    await User.create({ email, name, password })
+    if (avatar) {
+        const result = await cloudinary.uploader.upload(avatar, {
+            folder: 'qqick/profiles',
+            crop: 'scale',
+            width: '150'
+
         })
-        avaterUrl = result.url;
+        console.log(result.secure_url)
+        avatarUrl = result.secure_url;
+        await User.findOneAndUpdate({ email }, { avatar: avatarUrl }, { new: true });
+
     }
-    await User.create({ email, name, avatar: avatarUrl, password})
     return res.sendResponse();
 })
 
