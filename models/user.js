@@ -17,10 +17,23 @@ const userSchema = new mongoose.Schema({
         validate: [validator.isEmail, 'Please provide a valid email'],
     },
     password: {
-        type: String,
         trim: true,
         required: [true, 'Password is required'],
-        select: false
+        minlength: [8, 'Password must be at least 8 characters'],
+        select: false,
+        type: String,
+        validate(value) {
+            if (value.toLowerCase().includes('password')) {
+                throw new Error('Password cannot contain "password"');
+            }
+            // validate password strength
+            if (!value.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
+                throw new Error('Password must contain at least one uppercase, one lowercase, one number and one special character');
+            }
+      
+        }
+
+
     },
     avatar: {
         type: String,

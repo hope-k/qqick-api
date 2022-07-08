@@ -4,7 +4,7 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const cloudinary = require('cloudinary').v2
 const bcrypt = require('bcryptjs');
-
+const validator = require('validator');
 
 exports.register = asyncErrorHandler(async (req, res, next) => {
     const { email, password, name, avatar, confirmPassword } = req.body;
@@ -24,7 +24,6 @@ exports.register = asyncErrorHandler(async (req, res, next) => {
             width: '150'
 
         })
-        console.log(result.secure_url)
         avatarUrl = result.secure_url;
         await User.findOneAndUpdate({ email }, { avatar: avatarUrl }, { new: true });
 
@@ -35,6 +34,9 @@ exports.register = asyncErrorHandler(async (req, res, next) => {
 
 exports.login = asyncErrorHandler(async (req, res, next) => {
     const { email, password } = req.body;
+    if (!validator.isEmail(email)) {
+        return next(new sendError('Invalid email address'));
+    }
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
         return next(new sendError('Incorrect user ID or password', 401));
@@ -51,9 +53,11 @@ exports.login = asyncErrorHandler(async (req, res, next) => {
 
 })
 
-exports.user = asyncErrorHandler(async (req, res) => {
-    const user = await User.findById(req.user);
-    return res.sendResponse({ user });
+exports.me = asyncErrorHandler(async (req, res, next) => {
+    if(!req.user){
+        return next(new sendError('You are not logged in', 401));
+    }
+    return res.sendResponse({ user: req.user });
 
 })
 
@@ -63,3 +67,21 @@ exports.logout = asyncErrorHandler((req, res) => {
     return res.sendResponse();
 
 });
+
+exports.users = asyncErrorHandler(async (req, res, next) => {
+    let users = [];
+    if (!req.query.search.length > 0) {
+        return res.sendResponse({ users })
+    }
+    const keyword = req.query.search ? {
+        $or: [
+            { name: { $regex: req.query.search, $options: 'i' } },
+            { email: { $regex: req.query.search, $options: 'i' } }
+        ]
+    } : {}
+    //find the users based on the keyword excluding the current user
+    users = await User.find({ ...keyword, _id: { $ne: req.user._id } });
+
+    return res.sendResponse({ users });
+
+})

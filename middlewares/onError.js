@@ -15,7 +15,8 @@ module.exports = (err, req, res, next) => {
     return res.status(err.statusCode).json({
         success: false,
         error: message,
-        stack: err.stack
+        stack: err.stack,
+        statusCode: err.statusCode
 
     });
 
