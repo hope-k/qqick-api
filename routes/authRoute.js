@@ -7,7 +7,10 @@ const protectedRoute = require('../middlewares/protectedRoute');
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.get('/me', protectedRoute, authController.me);
+router.post('/status', protectedRoute, authController.setStatus);
 router.get('/users', protectedRoute, authController.users)
+router.post('/logout', protectedRoute, authController.logout);
+
 
 
 module.exports = router;

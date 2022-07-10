@@ -16,6 +16,15 @@ const userSchema = new mongoose.Schema({
         lowercase: true,
         validate: [validator.isEmail, 'Please provide a valid email'],
     },
+    gender: {
+        type: String,
+        enum: {
+            values: ['male', 'female'],
+            message: 'Provide gender'
+        },
+        required: [true, 'Gender is required']
+
+    },
     password: {
         trim: true,
         required: [true, 'Password is required'],
@@ -30,7 +39,7 @@ const userSchema = new mongoose.Schema({
             if (!value.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
                 throw new Error('Password must contain at least one uppercase, one lowercase, one number and one special character');
             }
-      
+
         }
 
 
@@ -38,6 +47,14 @@ const userSchema = new mongoose.Schema({
     avatar: {
         type: String,
         trim: true,
+    },
+    status: {
+        type: String,
+        enum: {
+            values: ['away', 'available'],
+            message: 'Status can only be away or available'
+        },
+        default: 'away'
     }
 },
     {

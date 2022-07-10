@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const validator = require('validator');
 
 exports.register = asyncErrorHandler(async (req, res, next) => {
-    const { email, password, name, avatar, confirmPassword } = req.body;
+    const { email, password, name, avatar,gender, confirmPassword } = req.body;
     if (password !== confirmPassword) {
         return next(new sendError('Passwords do not match'));
     }
@@ -16,7 +16,7 @@ exports.register = asyncErrorHandler(async (req, res, next) => {
     if (userExists) {
         return next(new sendError('User already exists'));
     }
-    await User.create({ email, name, password })
+    await User.create({ email, name, password, gender })
     if (avatar) {
         const result = await cloudinary.uploader.upload(avatar, {
             folder: 'qqick/profiles',
@@ -83,5 +83,11 @@ exports.users = asyncErrorHandler(async (req, res, next) => {
     users = await User.find({ ...keyword, _id: { $ne: req.user._id } });
 
     return res.sendResponse({ users });
+})
 
+exports.setStatus = asyncErrorHandler(async (req, res, next) => {
+   const {status} = req.body;
+    req.user.status = status
+    req.user.save()
+    return res.sendResponse()
 })

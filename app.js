@@ -13,7 +13,8 @@ const sendResponse = require('./middlewares/sendResponse');
 const cookieParser = require('cookie-parser');
 const cloudinary = require('cloudinary').v2;
 const messageRoute = require('./routes/messageRoute');
-
+const Socket = require('./models/socket');
+const User = require('./models/user');
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -43,7 +44,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use('/api', chatsRoute);
 app.use('/api', authRoute);
 app.use('/api', messageRoute);
-app.use('/api',notificationRoute)
+app.use('/api', notificationRoute)
 app.use(onError)
 
 const server = app.listen(PORT, () => {
@@ -62,21 +63,25 @@ const io = require('socket.io')(server, {
 
 });
 
-io.on("connection", (socket) => {
+
+io.on("connection", async (socket) => {
     console.log("New client connected".bgGreen.italic.bold);
 
-    socket.on('setup', (currentUser) => {
+    socket.on('setup', async (currentUser) => {
+        let newUserOnline = await Socket.findOne({ $and: [{ user: currentUser?._id }, { socketId: socket.id }] });
+        if (!newUserOnline) {
+            newUserOnline = await Socket.create({ user: currentUser?._id, socketId: socket.id });
+        }
+        const user = await User.findById(newUserOnline.user);
+        if (user) {
+            user.status = 'available'
+            await user.save();
+        }
         socket.join(currentUser?._id)
         socket.emit('connected')
-
         console.log('socket connected', currentUser?.email);
     })
 
-    socket.on('online', (user) => {
-        socket.emit('online', user)
-        console.log(`${user?.email} is online`)
-    })
-    
     socket.on('join chat', (room) => {
         socket.join(room)
         console.log('User joined: ', room)
@@ -107,17 +112,25 @@ io.on("connection", (socket) => {
         })
 
     })
-    
+
 
     socket.off('setup', () => {
         console.log('socket disconnected')
-        socket.leave(user)
     })
 
 
 
-    socket.on("disconnect", () => {
-        console.log("Client disconnected".bgRed.italic.bold);
+    socket.on("disconnect", async () => {
+        const disconnectingUser = await Socket.findOne({ socketId: socket.id });
+        if (disconnectingUser) {
+            const user = await User.findById(disconnectingUser.user);
+            if (user) {
+                user.status = 'away'
+                await user.save();
+            }
+        }
+        await Socket.deleteMany({ socketId: socket.id })
+        console.log("Client disconnected".bgRed.italic.bold, socket.id);
     })
 })
 

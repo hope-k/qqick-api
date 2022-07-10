@@ -16,7 +16,7 @@ exports.sendMessage = asyncErrorHandler(async (req, res, next) => {
         chat: chatId,
     });
 
-    const message = await Message.findById(newMessage._id).populate('sender', 'name avatar').populate('chat').populate({ path: 'chat.users', select: 'name avatar email' });
+    const message = await Message.findById(newMessage._id).populate('sender').populate('chat').populate({ path: 'chat.users', select: 'name avatar email' });
     const chatUpdate = await Chat.findByIdAndUpdate(chatId, { latestMessage: newMessage._id }, { new: true });
 
 
@@ -25,6 +25,6 @@ exports.sendMessage = asyncErrorHandler(async (req, res, next) => {
 
 exports.getMessages = asyncErrorHandler(async (req, res, next) => {
     const { chatId } = req.params;
-    const messages = await Message.find({ chat: chatId }).populate('sender', 'name avatar').populate('chat').sort({ createdAt: 1 });
+    const messages = await Message.find({ chat: chatId }).populate('sender', 'name email avatar status').populate('chat').sort({ createdAt: 1 });
     return res.sendResponse({ messages });
 })
