@@ -8,7 +8,7 @@ module.exports = (err, req, res, next) => {
     }
     if (err.name === 'ValidationError') {
         const message = Object.values(err.errors).map(value => value.message);
-        error = new sendError(message, 400);
+        error = new sendError(message);
     }
     const message = err.message?.split(',')
 

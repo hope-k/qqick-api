@@ -91,3 +91,12 @@ exports.setStatus = asyncErrorHandler(async (req, res, next) => {
     req.user.save()
     return res.sendResponse()
 })
+
+exports.getUser = asyncErrorHandler(async (req, res, next) => {
+    const { id } = req.params;
+    const user = await User.findById(id)
+    if (!user) {
+        return next(new sendError('User not found', 404));
+    }
+    return res.sendResponse({ user });
+})

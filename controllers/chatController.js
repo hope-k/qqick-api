@@ -2,6 +2,7 @@ const asyncErrorHandler = require("../utils/asyncErrorHandler");
 const sendError = require("../utils/sendError");
 const Chat = require("../models/chat");
 const User = require("../models/user");
+const cloudinary = require('cloudinary').v2
 
 
 
@@ -47,25 +48,35 @@ exports.createGroupChat = asyncErrorHandler(async (req, res, next) => {
     if (!req.body.groupName || !req.body.users) {
         return next(new sendError('Please provide group name and users'));
     }
-    const groupExist = await Chat.findOne({
-        groupAdmin: req.user._id,
-        chatName: req.body.groupName
-    })
-    if (groupExist) {
-        return next(new sendError('Group already exist'));
-    }
+
     const { groupName, users } = req.body;
     const usersIncludingAdmin = [req.user._id, ...users];
 
 
-    if (users.length < 2) {
+    if (users?.length < 2) {
         return next(new sendError('Please select at least two users'));
+    }
+
+    let avatar;
+    let avatarId;
+    if (req.body.groupImage) {
+        const result = await cloudinary.uploader.upload(req.body.groupImage, {
+            folder: 'qqick/groupImages',
+            crop: 'scale',
+            width: '150'
+
+        })
+        avatar = result.secure_url;
+        avatarId = result.public_id;
+
     }
 
     const newChat = await Chat.create({
         isGroupChat: true,
         chatName: groupName,
         groupAdmin: req.user._id,
+        groupImage: avatar,
+        groupImageId: avatarId,
         users: usersIncludingAdmin,
     })
     const chat = await Chat.findById(newChat._id).populate('groupAdmin', 'name email avatar').populate('users').populate('latestMessage').populate({ path: 'latestMessage.sender', select: 'name email avatar' });
@@ -74,13 +85,40 @@ exports.createGroupChat = asyncErrorHandler(async (req, res, next) => {
 });
 
 exports.updateGroupChat = asyncErrorHandler(async (req, res, next) => {
-    let chat;
     const groupId = req.query.groupId;
+    let chat;
     if (!groupId) {
         return next(new sendError('Please provide group id'));
     }
-    const { groupName, users } = req.body;
-    chat = await Chat.findByIdAndUpdate(groupId, { users, chatName: groupName }, { new: true });
+    const { groupName, users, groupImage } = req.body;
+    console.log(groupImage)
+
+    chat = await Chat.findById(groupId)
+    if (groupImage) {
+        console.log('yes--------')
+        if (chat.groupImage !== groupImage) {
+            // check if cloudinary has group image
+            if (chat.groupImage) {
+                await cloudinary.uploader.destroy(chat.groupImageId)
+            }
+            const result = await cloudinary.uploader.upload(groupImage, {
+                folder: 'qqick/groupImages',
+                crop: 'scale',
+                width: '150'
+            })
+            chat.groupImage = result.secure_url;
+            chat.groupImageId = result.public_id;
+            chat.users = users;
+            chat.chatName = groupName;
+            await chat.save()
+            return res.sendResponse({chat});
+        }
+    }
+    console.log('no---')
+    chat.users = users;
+    chat.chatName = groupName;
+    await chat.save()
+
     return res.sendResponse({ chat });
 
 });
@@ -90,6 +128,11 @@ exports.deleteGroupChat = asyncErrorHandler(async (req, res, next) => {
     if (!groupId) {
         return next(new sendError('Please provide group id'));
     }
+    const chat = await Chat.findById(groupId);
+    if (chat?.groupImage) {
+        await cloudinary.uploader.destroy(chat.groupImageId)
+    }
+    await Message.deleteMany({ chat: groupId });
     await Chat.findByIdAndDelete(groupId);
     return res.sendResponse();
 

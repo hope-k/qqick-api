@@ -15,6 +15,8 @@ const cloudinary = require('cloudinary').v2;
 const messageRoute = require('./routes/messageRoute');
 const Socket = require('./models/socket');
 const User = require('./models/user');
+const Notification = require('./models/notification');
+
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -38,8 +40,8 @@ app.use(cors({
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 app.use('/api', chatsRoute);
 app.use('/api', authRoute);
@@ -94,18 +96,23 @@ io.on("connection", async (socket) => {
     socket.on('stop typing', (room) => socket.to(room).emit('stop typing'))
 
 
-    socket.on('send message', (newMessage) => {
+    socket.on('send message', async (newMessageData) => {
+        const newMessage = newMessageData.message;
         const chat = newMessage?.chat
         if (!chat?.users) {
             return console.log("Chat users not defined")
         }
         const users = chat?.users
-        console.log('USERS BEFORE', users)
-
+        const liveMessageRecipient = users?.filter(u => u?._id !== newMessageData.currentUser?._id)[0]
+        if (liveMessageRecipient && liveMessageRecipient?.status !== 'available') {
+            await Notification.create({
+                users: users.filter(u => u?._id !== newMessageData.currentUser?._id),
+                message: newMessage
+            })
+        }
         users.forEach(user => {
-            console.log('USERS AFTER', user)
             if (user !== newMessage?.sender?._id) {
-                socket.to(user).emit('message received', newMessage)
+                socket.to(user._id).emit('message received', newMessage)
             } else {
                 return
             }
