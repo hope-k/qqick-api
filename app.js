@@ -33,6 +33,7 @@ app.use(cookieParser({
     sameSite: 'none',
     secure: process.env.NODE_ENV === 'production' ? true : false
 
+
 }));
 app.use(sendResponse)
 app.use(cors({

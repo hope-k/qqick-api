@@ -47,9 +47,7 @@ exports.login = asyncErrorHandler(async (req, res, next) => {
         return next(new sendError('Incorrect user ID or password', 401));
     }
     const token = await jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET, { expiresIn: '24h' });
-    res.cookie('token', token, {
-        sameSite: 'none'
-    })
+    res.cookie('token', token)
     return res.sendResponse()
 
 
