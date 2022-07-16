@@ -102,14 +102,24 @@ io.on("connection", async (socket) => {
             return console.log("Chat users not defined")
         }
         const users = chat?.users
-        const liveMessageRecipient = users?.filter(u => u?._id !== newMessageData.currentUser?._id)[0]
-        if (liveMessageRecipient && liveMessageRecipient?.status !== 'available') {
-            await Notification.create({
-                users: users.filter(u => u?._id !== newMessageData.currentUser?._id),
-                message: newMessage
-            })
+        if (!newMessage?.chat?.isGroupChat) {
+            const liveMessageRecipient = users?.filter(u => u?._id !== newMessageData.currentUser?._id)[0]
+            if (liveMessageRecipient && liveMessageRecipient?.status !== 'available') {
+                await Notification.create({
+                    users: users.filter(u => u?._id !== newMessageData.currentUser?._id),
+                    message: newMessage
+                })
+            }
         }
         users.forEach(user => {
+            if (newMessage?.chat?.isGroupChat) {
+                if (user?.status !== 'available') {
+                    await Notification.create({
+                        users: users.filter(u => u?._id !== newMessage?.sender?._id),
+                        message: newMessage
+                    })
+                }
+            }
             if (user !== newMessage?.sender?._id) {
                 socket.to(user._id).emit('message received', newMessage)
             } else {
