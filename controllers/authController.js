@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const validator = require('validator');
 
 exports.register = asyncErrorHandler(async (req, res, next) => {
-    const { email, password, name, avatar,gender, confirmPassword } = req.body;
+    const { email, password, name, avatar, gender, confirmPassword } = req.body;
     if (password !== confirmPassword) {
         return next(new sendError('Passwords do not match'));
     }
@@ -47,14 +47,21 @@ exports.login = asyncErrorHandler(async (req, res, next) => {
         return next(new sendError('Incorrect user ID or password', 401));
     }
     const token = await jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET, { expiresIn: '24h' });
-    res.cookie('token', token)
+
+    let options = {
+        maxAge: 24 * 60 * 60 * 1000, 
+        httpOnly: true, 
+        secure: process.env.NODE_ENV === 'production' ? true : false,
+        sameSite: 'none',
+    }
+    res.cookie('token', token, options);
     return res.sendResponse()
 
 
 })
 
 exports.me = asyncErrorHandler(async (req, res, next) => {
-    if(!req.user){
+    if (!req.user) {
         return next(new sendError('You are not logged in', 401));
     }
     return res.sendResponse({ user: req.user });
@@ -86,7 +93,7 @@ exports.users = asyncErrorHandler(async (req, res, next) => {
 })
 
 exports.setStatus = asyncErrorHandler(async (req, res, next) => {
-   const {status} = req.body;
+    const { status } = req.body;
     req.user.status = status
     req.user.save()
     return res.sendResponse()

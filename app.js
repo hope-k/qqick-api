@@ -32,12 +32,6 @@ dbConnect()
 
 app.use(cookieParser({
     secret: process.env.COOKIE_SECRET,
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000,
-    sameSite: 'none',
-    secure: process.env.NODE_ENV === 'production' ? true : false
-
-
 }));
 app.use(sendResponse)
 app.use(cors({
