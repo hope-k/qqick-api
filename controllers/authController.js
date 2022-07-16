@@ -55,7 +55,7 @@ exports.login = asyncErrorHandler(async (req, res, next) => {
         sameSite: 'none',
     }
     res.cookie('token', token, options);
-    return res.sendResponse()
+    return res.sendResponse({token})
 
 
 })

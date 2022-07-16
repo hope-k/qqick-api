@@ -3,7 +3,7 @@ const sendError = require("../utils/sendError");
 const Chat = require("../models/chat");
 const User = require("../models/user");
 const cloudinary = require('cloudinary').v2
-
+const Message = require("../models/message");
 
 
 exports.createChat = asyncErrorHandler(async (req, res, next) => {
@@ -91,11 +91,9 @@ exports.updateGroupChat = asyncErrorHandler(async (req, res, next) => {
         return next(new sendError('Please provide group id'));
     }
     const { groupName, users, groupImage } = req.body;
-    console.log(groupImage)
 
     chat = await Chat.findById(groupId)
     if (groupImage) {
-        console.log('yes--------')
         if (chat.groupImage !== groupImage) {
             // check if cloudinary has group image
             if (chat.groupImage) {
@@ -114,7 +112,6 @@ exports.updateGroupChat = asyncErrorHandler(async (req, res, next) => {
             return res.sendResponse({chat});
         }
     }
-    console.log('no---')
     chat.users = users;
     chat.chatName = groupName;
     await chat.save()
@@ -132,7 +129,10 @@ exports.deleteGroupChat = asyncErrorHandler(async (req, res, next) => {
     if (chat?.groupImage) {
         await cloudinary.uploader.destroy(chat.groupImageId)
     }
-    await Message.deleteMany({ chat: groupId });
+    const messages = await Message.find({ chat: groupId });
+    if (messages.length) {
+        await Message.deleteMany({ chat: groupId });
+    }
     await Chat.findByIdAndDelete(groupId);
     return res.sendResponse();
 
