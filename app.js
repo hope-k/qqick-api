@@ -26,6 +26,12 @@ cloudinary.config({
 
 dbConnect()
 
+app.set('trust proxy', 1);
+
+
+
+
+
 app.use(cookieParser({
     secret: process.env.COOKIE_SECRET,
     httpOnly: true,
