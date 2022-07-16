@@ -111,7 +111,7 @@ io.on("connection", async (socket) => {
                 })
             }
         }
-        users.forEach(user => {
+        users.forEach(async (user) => {
             if (newMessage?.chat?.isGroupChat) {
                 if (user?.status !== 'available') {
                     await Notification.create({
