@@ -109,7 +109,7 @@ exports.updateGroupChat = asyncErrorHandler(async (req, res, next) => {
             chat.users = users;
             chat.chatName = groupName;
             await chat.save()
-            return res.sendResponse({chat});
+            return res.sendResponse({ chat });
         }
     }
     chat.users = users;
@@ -135,5 +135,19 @@ exports.deleteGroupChat = asyncErrorHandler(async (req, res, next) => {
     }
     await Chat.findByIdAndDelete(groupId);
     return res.sendResponse();
+
+})
+
+exports.removeUserFromGroup = asyncErrorHandler(async (req, res, next) => {
+    const { groupId, userId } = req.query;
+    if (!groupId || !userId) {
+        return next(new sendError('Please provide group id and user id'));
+    }
+    let chat = await Chat.findById(groupId);
+    if (!chat) {
+        return next(new sendError('Chat not found'));
+    }
+    chat = await Chat.findByIdAndUpdate(groupId, { $pull: { users: { $in: [userId] } } }, { new: true });
+    return res.sendResponse({ chat });
 
 })

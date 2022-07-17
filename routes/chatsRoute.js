@@ -9,6 +9,7 @@ router.get('/chat/index', protectedRoute, chatController.getChats);
 router.get('/chat/conversation', protectedRoute, chatController.getConversation);
 router.post('/group-chat/create', protectedRoute, chatController.createGroupChat);
 router.put('/group-chat/update', protectedRoute, chatController.updateGroupChat);
+router.put('/group-chat/remove-user', protectedRoute, chatController.removeUserFromGroup);
 router.delete('/group-chat/delete', protectedRoute, chatController.deleteGroupChat);
 
 module.exports = router;
