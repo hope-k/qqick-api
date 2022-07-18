@@ -48,13 +48,6 @@ exports.login = asyncErrorHandler(async (req, res, next) => {
     }
     const token = await jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
-    let options = {
-        expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
-        httpOnly: true, 
-        secure: process.env.NODE_ENV === 'production' ? true : false,
-        sameSite: 'none',
-    }
-    res.cookie('token', token, options);
     return res.sendResponse({token})
 
 
@@ -70,7 +63,11 @@ exports.me = asyncErrorHandler(async (req, res, next) => {
 
 
 exports.logout = asyncErrorHandler((req, res) => {
+    
     res.clearCookie('token');
+
+    
+
     return res.sendResponse();
 
 });
