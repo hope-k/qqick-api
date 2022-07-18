@@ -16,8 +16,7 @@ const messageRoute = require('./routes/messageRoute');
 const Socket = require('./models/socket');
 const User = require('./models/user');
 const Notification = require('./models/notification')
-app.enable('trust proxy');
-
+app.set('trust proxy', 1)
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -26,9 +25,6 @@ cloudinary.config({
 })
 
 dbConnect()
-
-
-
 
 app.use(cookieParser({
     secret: process.env.COOKIE_SECRET,

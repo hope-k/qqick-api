@@ -6,7 +6,6 @@ const asyncErrorHandler = require('../utils/asyncErrorHandler');
 module.exports = asyncErrorHandler(async (req, res, next) => {
     try{
         const token = req.cookies?.token;
-    
         if (!token) {
             return next(new sendError('You are not logged in', 401));
         }
@@ -22,7 +21,6 @@ module.exports = asyncErrorHandler(async (req, res, next) => {
             return next(new sendError('User not found', 404));
         }
         req.user = user;
-    
         return next();
 
     }catch(err){
