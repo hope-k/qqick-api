@@ -15,7 +15,7 @@ const cloudinary = require('cloudinary').v2;
 const messageRoute = require('./routes/messageRoute');
 const Socket = require('./models/socket');
 const User = require('./models/user');
-const Notification = require('./models/notification');
+const Notification = require('./models/notification')
 app.enable('trust proxy');
 
 
@@ -32,6 +32,7 @@ dbConnect()
 
 app.use(cookieParser({
     secret: process.env.COOKIE_SECRET,
+    secure: process.env.NODE_ENV === 'production' ? true : false,
 }));
 app.use(sendResponse)
 app.use(cors({
