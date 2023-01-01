@@ -31,11 +31,13 @@ app.use(cookieParser({
     secure: process.env.NODE_ENV === 'production' ? true : false,
 }));
 app.use(sendResponse)
+
 app.use(cors({
-    origin: [process.env.FRONTEND_URL, 'https://qqick.vercel.app'],
+    origin: [process.env.FRONTEND_URL, process.env.API_URL],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
 }));
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
