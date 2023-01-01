@@ -32,7 +32,7 @@ app.use(cookieParser({
 }));
 app.use(sendResponse)
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
+    origin: [process.env.FRONTEND_URL, 'https://qqick.vercel.app'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
 }));
