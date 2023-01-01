@@ -10,7 +10,7 @@ module.exports = (err, req, res, next) => {
         const message = Object.values(err.errors).map(value => value.message);
         error = new sendError(message);
     }
-    const message = err.message?.split(',')z
+    const message = err.message?.split(',')
 
     return res.status(err.statusCode).json({
         success: false,
