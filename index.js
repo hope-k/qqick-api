@@ -16,6 +16,11 @@ const messageRoute = require('./routes/messageRoute');
 const Socket = require('./models/socket');
 const User = require('./models/user');
 const Notification = require('./models/notification')
+const { job } = require('./cron');
+
+//? Cron Job
+job.start();
+
 app.set('trust proxy', 1)
 
 cloudinary.config({
@@ -25,6 +30,7 @@ cloudinary.config({
 })
 
 dbConnect()
+
 
 app.use(cookieParser({
     secret: process.env.COOKIE_SECRET,
